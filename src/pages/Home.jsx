@@ -1,10 +1,13 @@
-import React, { useEffect, useState } from 'react'
-import { useNavigate } from 'react-router-dom'
+import React, { useState, useEffect } from 'react'
+import { useNavigate, useLocation } from 'react-router-dom'
 import Navbar from '../components/Navbar'
 
 function Home() {
   const [products, setProducts] = useState([])
+  const [filteredProducts, setFilteredProducts] = useState([])
   const navigate = useNavigate()
+  const location = useLocation()
+  const [hoveredCard, setHoveredCard] = useState(null)
 
   useEffect(() => {
     fetch('https://fakestoreapi.com/products')
@@ -12,6 +15,21 @@ function Home() {
       .then(data => setProducts(data))
       .catch(err => console.error('Failed to fetch products:', err))
   }, [])
+
+  useEffect(() => {
+    const params = new URLSearchParams(location.search)
+    const search = params.get('search')?.toLowerCase() || ''
+
+    if (search) {
+      const filtered = products.filter(product =>
+        product.title.toLowerCase().includes(search) ||
+        product.category.toLowerCase().includes(search)
+      )
+      setFilteredProducts(filtered)
+    } else {
+      setFilteredProducts(products)
+    }
+  }, [location.search, products])
 
   const handleGoToProduct = (id) => {
     navigate(`/product/${id}`)
@@ -22,9 +40,21 @@ function Home() {
       <Navbar />
       <h1 style={styles.header}>🛍️ Our Products</h1>
       <div style={styles.grid}>
-        {products.map(product => (
-          <div key={product.id} style={styles.card}>
+        {filteredProducts.map(product => (
+          <div
+            key={product.id}
+            style={{
+              ...styles.card,
+              ...(hoveredCard === product.id ? styles.cardHover : {})
+            }}
+            onMouseEnter={() => setHoveredCard(product.id)}
+            onMouseLeave={() => setHoveredCard(null)}
+            onClick={() => handleGoToProduct(product.id)}
+          >
             <img src={product.image} alt={product.title} style={styles.image} />
+            <p style={styles.category}>
+              {product.category.charAt(0).toUpperCase() + product.category.slice(1)}
+            </p>
             <h3 style={styles.title}>{product.title}</h3>
             <p style={styles.description}>
               {product.description.length > 100
@@ -34,7 +64,12 @@ function Home() {
             <p style={styles.price}>${product.price}</p>
             <button
               style={styles.button}
-              onClick={() => handleGoToProduct(product.id)}
+              onClick={(e) => {
+                e.stopPropagation()
+                handleGoToProduct(product.id)
+              }}
+              onMouseEnter={e => (e.currentTarget.style.backgroundColor = styles.buttonHover.backgroundColor)}
+              onMouseLeave={e => (e.currentTarget.style.backgroundColor = styles.button.backgroundColor)}
             >
               View Product
             </button>
@@ -44,6 +79,9 @@ function Home() {
     </div>
   )
 }
+
+
+
 
 const styles = {
   page: {
@@ -76,7 +114,12 @@ const styles = {
     display: 'flex',
     flexDirection: 'column',
     alignItems: 'center',
-    transition: 'transform 0.2s',
+    transition: 'transform 0.2s, box-shadow 0.2s',
+    cursor: 'pointer',
+  },
+  cardHover: {
+    transform: 'scale(1.03)',
+    boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
   },
   image: {
     height: '120px',
@@ -87,6 +130,14 @@ const styles = {
     fontSize: '1rem',
     color: '#333',
     textAlign: 'center',
+  },
+  category: {
+    fontSize: '0.9rem',
+    color: '#888',
+    textAlign: 'right',
+    marginBottom: '0.5rem',
+    width: '100%',
+    alignSelf: 'flex-start',
   },
   description: {
     fontSize: '0.9rem',
@@ -109,6 +160,9 @@ const styles = {
     cursor: 'pointer',
     fontWeight: 'bold',
     transition: 'background-color 0.3s',
+  },
+  buttonHover: {
+    backgroundColor: '#0056b3',
   },
 }
 
