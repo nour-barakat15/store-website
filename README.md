@@ -12,7 +12,7 @@ User data and cart information are stored locally using `localStorage`.
 
    ```bash
    git clone https://github.com/nour-barakat15/store-website.git
-   cd your-repo-name
+   cd store-website
 2. **Install dependencies:**
     npm install
 3. **Start the development server:**
