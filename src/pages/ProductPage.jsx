@@ -151,7 +151,7 @@ const styles = {
     fontSize: '1.2rem',
     color: 'red',
   },
-  // Responsive: stack image and details side-by-side on wider screens
+  
   '@media (min-width: 768px)': {
     container: {
       flexDirection: 'row',
